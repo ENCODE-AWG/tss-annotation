@@ -1,7 +1,7 @@
 cellType=$1
 
-dataDir=/data/tss_annotations
-scriptDir=~/Scripts/tss-annotation/cCRE-Intersections/
+dataDir=~/GitHub/tss-annotation/Annotations
+scriptDir=~/GitHub/tss-annotation/cCRE-Intersections/
 ccres=$dataDir/Chromatin-Datasets/cCREs/hg38/$cellType/$cellType-cCREs.bed
 
 rampageBed=$dataDir/Transcription-Datasets/RAMPAGE/hg38/$cellType/$cellType-RAMPAGE-*Peaks.RPM-1.bed
