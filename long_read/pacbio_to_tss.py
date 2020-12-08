@@ -59,6 +59,8 @@ def main(cmdline=None):
 
     reference_counts = get_counts_by_reference(args.bam_file)
     total_counts = reference_counts["mapped"].sum()
+    logger.info("{} total reads".format(total_counts))
+
 
     regions, wigs = find_tss_peaks(
         alignment,
