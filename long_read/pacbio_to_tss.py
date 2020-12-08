@@ -308,8 +308,8 @@ def calculate_tss_region(
 ) -> tss_regions:
     median = numpy.median(region)
     sd = numpy.std(region)
-    begin = min(region)
-    end = max(region)
+    begin = region[0]
+    end = region[-1] + 1
     dense_begin = int(numpy.floor(median - sd))
     dense_end = int(numpy.ceil(median + sd))
 
