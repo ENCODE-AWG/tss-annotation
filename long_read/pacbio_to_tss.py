@@ -73,7 +73,6 @@ def main(cmdline=None):
     wigs = None
 
     regions = pandas.DataFrame(regions)
-    regions.sort_values(['reference', 'begin'], inplace=True)
     if not args.zero_bed:
         # We want [1,end] based beds. Internally everything is zero
         # based. So we need to add 1 to all the beginnings of
@@ -272,6 +271,7 @@ def find_tss_peaks_on_reference(
         else:
             window[strand].append(start)
 
+    bed_records = sorted(bed_records, key=lambda x: x.begin)
     logger.info("{} TSSes found on {}".format(len(bed_records), reference_name))
     logger.debug("{} minus strand wiggle on {}".format(len(wigs[True]), reference_name))
     logger.debug("{} plus strand wiggle on {}".format(len(wigs[False]), reference_name))
