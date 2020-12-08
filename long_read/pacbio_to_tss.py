@@ -327,7 +327,7 @@ def calculate_tss_region(
 
 def add_wig_header_from_alignment(stream, alignment: AlignmentFile):
     """adds a BigWig header to the file using the BAM file's header"""
-    stream.addHeader(list(zip(alignment.references, alignment.lengths)))
+    stream.addHeader(list(sorted(zip(alignment.references, alignment.lengths))))
 
 
 def update_wig(filename, wig, alignment):
