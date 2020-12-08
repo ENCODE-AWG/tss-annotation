@@ -95,11 +95,10 @@ def main(cmdline=None):
 
     # Calculate score field
     # score=int(math.log10(peakExp/maximum)*1000)
-    peak_expression = numpy.log10(regions["expression"].max())
+    peak_expression = regions["expression"].max()
     logger.info("Peak expression {}".format(peak_expression))
     regions["score"] = (
-        (numpy.log10(regions["expression"]) / peak_expression * 1000)
-        .round()
+        numpy.ceil(regions["expression"] / peak_expression * 1000)
         .astype(int)
     )
     regions["strand"] = regions["is_reverse"].apply(lambda x: "-" if x else "+")
