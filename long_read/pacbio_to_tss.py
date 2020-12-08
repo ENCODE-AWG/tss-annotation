@@ -64,6 +64,7 @@ def main(cmdline=None):
         alignment,
         threshold=args.expression_threshold,
         window_size=args.window_size,
+        use_tes=args.tes
     )
 
     if args.positive_bigwig is not None:
@@ -149,6 +150,12 @@ converted to 1 based coordinates.
     parser.add_argument("-n", "--negative-bigwig", help="minus strand bigwig file name")
     parser.add_argument("-p", "--positive-bigwig", help="plus strand bigwig file name")
     parser.add_argument(
+        "--tes",
+        default=False,
+        action="store_true",
+        help="Use end site instead of start site",
+    )
+    parser.add_argument(
         "-0",
         "--zero-bed",
         default=False,
@@ -194,6 +201,7 @@ def find_tss_peaks(
     *,
     threshold: int = DEFAULT_THRESHOLD,
     window_size: int = DEFAULT_WINDOW,
+    use_tes: bool = False
 ) -> pandas.DataFrame:
     """Scan for tss peaks over all references in the BAM file.
 
@@ -207,7 +215,7 @@ def find_tss_peaks(
 
     for name in alignments.references:
         records, chr_wigs = find_tss_peaks_on_reference(
-            alignments, name, threshold=threshold, window_size=window_size
+            alignments, name, threshold=threshold, window_size=window_size, use_tes=use_tes
         )
         bed_records.extend(records)
         for strand in chr_wigs:
@@ -222,6 +230,7 @@ def find_tss_peaks_on_reference(
     *,
     threshold: int = DEFAULT_THRESHOLD,
     window_size: int = DEFAULT_WINDOW,
+    use_tes: bool = False
 ) -> ([tss_regions], {}):
     """Scan for tss peaks on a specific reference
 
@@ -247,7 +256,10 @@ def find_tss_peaks_on_reference(
 
     for read in alignment.fetch(reference_name):
         strand = read.is_reverse
-        start = read.reference_start
+        if not use_tes:
+            start = read.reference_start
+        else:
+            start = read.reference_end
 
         # terminate a region
         if len(window[strand]) > 0 and start > window[strand][-1] + window_size:
