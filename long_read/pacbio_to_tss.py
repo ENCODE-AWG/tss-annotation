@@ -337,6 +337,7 @@ def update_wig(filename, wig, alignment):
     add_wig_header_from_alignment(stream, alignment)
 
     for name in sorted(wig):
+        logging.debug("Processing {} for wig".format(name))
         if len(wig[name]) > 0:
             starts = [int(x) for x in sorted(wig[name])]
             values = [float(wig[name][x]) for x in starts]
