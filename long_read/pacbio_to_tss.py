@@ -63,7 +63,7 @@ def main(cmdline=None):
 
     threshold = args.expression_threshold
     if not args.raw_counts:
-        raw_threshold = threshold * 1_000_000 / total_counts
+        raw_threshold = threshold * total_counts / 1_000_000
         threshold = int(numpy.ceil(raw_threshold))
         logger.info("Using {} as normalized threshold instead of {}".format(threshold, raw_threshold))
 
