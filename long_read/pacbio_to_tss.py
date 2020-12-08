@@ -142,7 +142,7 @@ converted to 1 based coordinates.
     )
     parser.add_argument(
         "--expression-threshold",
-        type=int,
+        type=float,
         default=DEFAULT_THRESHOLD,
         help="Require at least this many counts within a potential window",
     )
