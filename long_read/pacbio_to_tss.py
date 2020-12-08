@@ -99,7 +99,7 @@ def main(cmdline=None):
     regions["color"] = regions["is_reverse"].apply(
         lambda x: MINUS_COLOR if x else PLUS_COLOR
     )
-    regions["name"] = ["{}_{}".format(args.region_prefix, x) for x in regions.index]
+    regions["name"] = ["{}{}".format(args.region_prefix, x) for x in regions.index]
 
     #          peak                           high density
     # chr, start, end, peak ID, score, strand, start, end, color, summit, expression
@@ -164,7 +164,7 @@ converted to 1 based coordinates.
         help="output raw counts instead of normalized to counts per million",
     )
     parser.add_argument(
-        "--region-prefix", default="peak", help="Set prefix for region names"
+        "--region-prefix", default="peak_", help="Set prefix for region names"
     )
     parser.add_argument(
         "-v",
