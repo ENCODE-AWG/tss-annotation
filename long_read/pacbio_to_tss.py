@@ -332,19 +332,15 @@ def add_wig_header_from_alignment(stream, alignment: AlignmentFile):
 
 def update_wig(filename, wig, alignment):
     import pyBigWig
-    stream = pyBigWig.open(filename, 'w')
+
+    stream = pyBigWig.open(filename, "w")
     add_wig_header_from_alignment(stream, alignment)
 
     for name in sorted(wig):
         if len(wig[name]) > 0:
             starts = [int(x) for x in sorted(wig[name])]
             values = [float(wig[name][x]) for x in starts]
-            stream.addEntries(
-                name,
-                starts,
-                values=values,
-                span=1
-            )
+            stream.addEntries(name, starts, values=values, span=1)
     stream.close()
 
 
