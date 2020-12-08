@@ -61,10 +61,15 @@ def main(cmdline=None):
     total_counts = reference_counts["mapped"].sum()
     logger.info("{} total reads".format(total_counts))
 
+    threshold = args.expression_threshold
+    if not args.raw_counts:
+        raw_threshold = threshold * 1_000_000 / total_counts
+        threshold = int(numpy.ceil(raw_threshold))
+        logger.info("Using {} as normalized threshold instead of {}".format(threshold, raw_threshold))
 
     regions, wigs = find_tss_peaks(
         alignment,
-        threshold=args.expression_threshold,
+        threshold=threshold,
         window_size=args.window_size,
         use_tes=args.tes
     )
