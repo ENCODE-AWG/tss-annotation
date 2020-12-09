@@ -13,8 +13,9 @@ from argparse import ArgumentParser
 
 import pandas
 import numpy
-from pysam import AlignmentFile, idxstats
+from pysam import AlignmentFile, AlignedRead, idxstats
 from collections import Counter, namedtuple
+from heapq import heappush, heappop
 import logging
 from io import StringIO
 
@@ -260,25 +261,19 @@ def find_tss_peaks_on_reference(
     }
     bed_records = []
 
-    for read in alignment.fetch(reference_name):
+    for pos, read in fetch_next_read(alignment.fetch(reference_name), use_tes):
         strand = read.is_reverse
-        if not use_tes:
-            start = read.reference_start
-        else:
-            start = read.reference_end
 
         # terminate a region
-        if len(window[strand]) > 0 and start > window[strand][-1] + window_size:
+        if len(window[strand]) > 0 and pos > window[strand][-1] + window_size:
             summit, tss_count = find_most_frequent_tss(window[strand])
-            # print(summit, tss_count)
             if tss_count > threshold:
                 bed_records.append(
                     calculate_tss_region(
                         reference_name, summit, tss_count, window[strand], strand
                     )
                 )
-                window_counts = Counter(window[strand])
-                # print(window_counts)
+                window_counts = Counter(sorted(window[strand]))
                 for location in window_counts:
                     assert (
                         location not in wigs[strand]
@@ -287,7 +282,7 @@ def find_tss_peaks_on_reference(
             window[strand] = []
         # extend a region
         else:
-            window[strand].append(start)
+            window[strand].append(pos)
 
     # We have to sort at the end because we built the positive and
     # negative strand windows separately so they can be a bit out of
@@ -297,6 +292,42 @@ def find_tss_peaks_on_reference(
     logger.debug("{} minus strand wiggle on {}".format(len(wigs[True]), reference_name))
     logger.debug("{} plus strand wiggle on {}".format(len(wigs[False]), reference_name))
     return bed_records, wigs
+
+
+def fetch_next_read(alignment, use_tes: bool) -> (int, AlignedRead):
+    """Fetch reads in sorted order
+
+    pysam returns reads ordered by reference_start, but we're
+    interested in the transcription start sites, which for the reverse
+    strand on the reference_end values.
+
+    (or reverse if we're looking for the transcription end site (use_tes=True)
+    """
+    ordered_reads = []
+    read_cache = {}
+
+    for read in alignment:
+        current = read.reference_start
+        if read.is_reverse:
+            pos = read.reference_end if not use_tes else read.reference_start
+        else:
+            pos = read.reference_start if not use_tes else read.reference_end
+
+        # Sadly the ordered heap can't sort the AlignedSegment objects
+        # So I have to store them elsewhere and only put entites into the
+        # heap that have comparison operators defined.
+        heappush(ordered_reads, (pos, read.query_name))
+        read_cache[read.query_name] = read
+
+        while len(ordered_reads) > 0 and current >= ordered_reads[0][0]:
+            pos, query_name = heappop(ordered_reads)
+            yield (pos, read_cache[query_name])
+            del read_cache[query_name]
+
+    while len(ordered_reads) > 0:
+        pos, query_name = heappop(ordered_reads)
+        yield (pos, read_cache[query_name])
+        del read_cache[query_name]
 
 
 def find_most_frequent_tss(region: [int]) -> (int, int):
