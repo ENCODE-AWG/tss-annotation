@@ -289,6 +289,9 @@ def find_tss_peaks_on_reference(
         else:
             window[strand].append(start)
 
+    # We have to sort at the end because we built the positive and
+    # negative strand windows separately so they can be a bit out of
+    # order compared to what bedToBigBed wants
     bed_records = sorted(bed_records, key=lambda x: x.begin)
     logger.info("{} TSSes found on {}".format(len(bed_records), reference_name))
     logger.debug("{} minus strand wiggle on {}".format(len(wigs[True]), reference_name))
