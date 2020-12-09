@@ -282,7 +282,7 @@ def find_tss_peaks_on_reference(
                 for location in window_counts:
                     assert (
                         location not in wigs[strand]
-                    ), "We should never see the same base twice"
+                    ), "We should never see the same base twice {} {} {}".format(reference_name, strand, location)
                     wigs[strand][location] = window_counts[location]
             window[strand] = []
         # extend a region
