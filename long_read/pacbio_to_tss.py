@@ -255,7 +255,7 @@ def find_tss_peaks_on_reference(
     threshold: int = DEFAULT_THRESHOLD,
     window_size: int = DEFAULT_WINDOW,
     use_tes: bool = False
-) -> ([tss_regions], {}):
+) -> (List[tss_regions], {}):
     """Scan for tss peaks on a specific reference
 
     All input and output coordinates are assumed to be zero based.
@@ -347,7 +347,7 @@ def fetch_next_read(alignment, use_tes: bool) -> (int, AlignedRead):
         del read_cache[query_name]
 
 
-def find_most_frequent_tss(region: [int]) -> (int, int):
+def find_most_frequent_tss(region: List[int]) -> (int, int):
     """Find the summit and score the whole region
 
     Given a list of read ends, count them by base, and pick the maximum
@@ -361,7 +361,7 @@ def find_most_frequent_tss(region: [int]) -> (int, int):
 
 
 def calculate_tss_region(
-    reference_name: str, summit: int, tss_count: int, region: [int], is_reverse: bool
+    reference_name: str, summit: int, tss_count: int, region: List[int], is_reverse: bool
 ) -> tss_regions:
     median = numpy.median(region)
     sd = numpy.std(region)
