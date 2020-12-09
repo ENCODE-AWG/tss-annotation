@@ -13,6 +13,7 @@ from argparse import ArgumentParser
 
 import pandas
 import numpy
+from typing import Union, List
 from pysam import AlignmentFile, AlignedRead, idxstats
 from collections import Counter, namedtuple
 from heapq import heappush, heappop
@@ -58,6 +59,11 @@ def main(cmdline=None):
     if not alignment.has_index():
         logger.warning("Running without an index is not supported")
 
+    if args.chrom_info is not None:
+        chrom_info = read_chrom_info(args.chrom_info, alignment.references)
+    else:
+        chrom_info = None
+
     reference_counts = get_counts_by_reference(args.bam_file)
     total_counts = reference_counts["mapped"].sum()
     logger.info("{} total reads".format(total_counts))
@@ -72,7 +78,8 @@ def main(cmdline=None):
         alignment,
         threshold=threshold,
         window_size=args.window_size,
-        use_tes=args.tes
+        use_tes=args.tes,
+        chrom_info=chrom_info
     )
 
     if args.positive_bigwig is not None:
@@ -157,6 +164,10 @@ converted to 1 based coordinates.
     parser.add_argument("-n", "--negative-bigwig", help="minus strand bigwig file name")
     parser.add_argument("-p", "--positive-bigwig", help="plus strand bigwig file name")
     parser.add_argument(
+        "--chrom-info",
+        help="Use specified list of chromosomes. Helpful for creating UCSC compatible files"
+    )
+    parser.add_argument(
         "--tes",
         default=False,
         action="store_true",
@@ -208,7 +219,8 @@ def find_tss_peaks(
     *,
     threshold: int = DEFAULT_THRESHOLD,
     window_size: int = DEFAULT_WINDOW,
-    use_tes: bool = False
+    use_tes: bool = False,
+    chrom_info: Union[None, List[str]] = None
 ) -> pandas.DataFrame:
     """Scan for tss peaks over all references in the BAM file.
 
@@ -220,7 +232,12 @@ def find_tss_peaks(
     bed_records = []
     wigs = {}
 
-    for name in alignments.references:
+    if chrom_info is None:
+        references = alignments.references
+    else:
+        references = chrom_info
+
+    for name in sorted(references):
         records, chr_wigs = find_tss_peaks_on_reference(
             alignments, name, threshold=threshold, window_size=window_size, use_tes=use_tes
         )
@@ -386,6 +403,24 @@ def update_wig(filename, wig, alignment):
             values = [float(wig[name][x]) for x in starts]
             stream.addEntries(name, starts, values=values, span=1)
     stream.close()
+
+
+def read_chrom_info(filename, references):
+    """Read chrom info file removing things not present in references
+    """
+    chrom_info = {}
+    available = set(references)
+    with open(filename, "rt") as instream:
+        for line in instream:
+            fields = line.strip().split("\t")
+            if fields[0] in available:
+                chrom_info[fields[0]] = int(fields[1])
+            else:
+                logger.warn(
+                    "chrom_info name {} is not present in the bam file".format(fields[0])
+                )
+
+    return chrom_info
 
 
 if __name__ == "__main__":
