@@ -247,7 +247,7 @@ def find_tss_peaks_on_reference(
     and minus strand.
     (Basically what is needed to generate a bigwig file)
     """
-    # Since we are using AlignmentSegment.is_reverse to determine what
+    # Since we are using AlignedRead.is_reverse to determine what
     # strand a read is on, True means it is on the negative strand
     # while False means it's on the postive strand.
     window = {
