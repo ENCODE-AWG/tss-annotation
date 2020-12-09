@@ -1,0 +1,63 @@
+* Introduction
+
+I worked on a program to go directly from ENCODE PacBio "alignments"
+to TSS annotation bed files.
+
+I built a test case using data available from the ENCODE portal
+
+* Setup
+
+Download and index a merged myoblast bam file, as I wasn't debugging
+the bam files, these files didn't change much
+
+#+BEGIN_SRC bash
+  mkdir ENCSR221XGR_myoblast
+  pushd ENCSR221XGR_myoblast
+  curl -L -o ENCFF652XIT_rep1.bam https://www.encodeproject.org/files/ENCFF652XIT/@@download/ENCFF652XIT.bam
+  curl -L -o ENCFF408MUF_rep2.bam https://www.encodeproject.org/files/ENCFF408MUF/@@download/ENCFF408MUF.bam
+  samtools merge -@ 8 myotube_unsorted.bam ENCFF999UDH_rep1.bam ENCFF163ANR_rep2.bam
+  samtools sort -m 2G -@ 8 myoblast2_unsorted.bam -o myoblast2.bam
+  samtools index -@ 8 myoblast2.bam myoblast2.bam.bai
+  rm myoblast2_unsorted.bam
+  popd
+
+#+END_SRC
+
+* Build the result files
+
+UCSC says they interpret bed files as being zero based, so although
+the tss groups uses 1 based annotations, I used the zero-based bed
+files to make viewing the results more accurate.
+
+#+BEGIN_SRC bash
+  pushd ENCSR221XGR_myoblast
+  python3 ../pacbio_to_tss.py -0 \
+          --window-size=50 \
+          --expression-threshold=2 \
+          -o myoblast2_tss.bed \
+          -i myoblast2.bam \
+          -n myoblast2_minus.bw \
+          -p myoblast2_plus.bw \
+          --verbose \
+          --chrom-info ~/proj/genome/mm10-M21-male/chrNameLength.txt
+  bedToBigBed \
+      -type=bed6+5 \
+      myoblast2_tss.bed \
+      ~/proj/genome/mm10-M21-male/chrNameLength.txt \
+      myoblast2_tss.bb
+  popd
+#+END_SRC
+
+(A small confession, I didn't run those code samples directly from the
+.org file, I just pulled the examples out from my shell history)
+
+There is an example trackhub that has the pre-built files, along with
+an example data from UCI.
+
+[[http://genome.ucsc.edu/cgi-bin/hgTracks?db=mm10&hubUrl=http://woldlab.caltech.edu/~diane/tss-annotation/long_read/C2C12_MB_ENCSR221XGR_hub.txt][C2C12_MB_ENCSR221XGR_hub.txt]]
+
+* .org note
+
+  This file is in [[https://orgmode.org/][org-mode]] the format I usually take my notes in
+  GitHub renders the basic org syntax reasonably so hopefully it's not
+  a problem for others.
