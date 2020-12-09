@@ -319,8 +319,10 @@ def calculate_tss_region(
     sd = numpy.std(region)
     begin = region[0]
     end = region[-1] + 1
-    dense_begin = int(numpy.floor(median - sd))
-    dense_end = int(numpy.ceil(median + sd))
+    # Clamp the dense region to be inside the detected region. For
+    # highly skewed regions the tail could fall outside the region
+    dense_begin = max(int(numpy.floor(median - sd)), begin)
+    dense_end = min(int(numpy.ceil(median + sd)), end)
 
     return tss_regions(
         reference_name,
