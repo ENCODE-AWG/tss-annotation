@@ -82,9 +82,9 @@ def main(cmdline=None):
         chrom_info=chrom_info
     )
 
-    if args.positive_bigwig is not None:
+    if args.positive_bigwig is not None and False in wigs:
         update_wig(args.positive_bigwig, wigs[False], alignment)
-    if args.negative_bigwig is not None:
+    if args.negative_bigwig is not None and True in wigs:
         update_wig(args.negative_bigwig, wigs[True], alignment)
     wigs = None
 
