@@ -29,6 +29,13 @@ UCSC says they interpret bed files as being zero based, so although
 the tss groups uses 1 based annotations, I used the zero-based bed
 files to make viewing the results more accurate.
 
+I was asked to enable the thick/thin lines on the bed file, and
+realized I should probably provide an autoSql file to provide
+documentation for the bed files. See [[file:tss_format.as][tss_format.as]]
+
+I also adjust the bedToBigBed command to indicate more columns were
+standard bed columns.
+
 #+BEGIN_SRC bash
   pushd ENCSR221XGR_myoblast
   python3 ../pacbio_to_tss.py -0 \
@@ -41,7 +48,8 @@ files to make viewing the results more accurate.
           --verbose \
           --chrom-info ~/proj/genome/mm10-M21-male/chrNameLength.txt
   bedToBigBed \
-      -type=bed6+5 \
+      -type=bed9+2 \
+      -as=../tss_format.as \
       myoblast2_tss.bed \
       ~/proj/genome/mm10-M21-male/chrNameLength.txt \
       myoblast2_tss.bb
