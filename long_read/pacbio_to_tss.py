@@ -40,6 +40,7 @@ tss_regions = namedtuple(
         "dense_end",
         "summit",
         "expression",
+        "query_name",
     ],
 )
 
@@ -113,7 +114,7 @@ def main(cmdline=None):
     regions["color"] = regions["is_reverse"].apply(
         lambda x: MINUS_COLOR if x else PLUS_COLOR
     )
-    regions["name"] = ["{}{}".format(args.region_prefix, x) for x in regions.index]
+    regions["name"] = ["{query_name}_{i}".format(i=i, query_name=row.query_name) for i, row in regions.iterrows()]
 
     #          peak                           high density
     # chr, start, end, peak ID, score, strand, start, end, color, summit, expression
@@ -186,9 +187,6 @@ converted to 1 based coordinates.
         default=False,
         action="store_true",
         help="output raw counts instead of normalized to counts per million",
-    )
-    parser.add_argument(
-        "--region-prefix", default="peak_", help="Set prefix for region names"
     )
     parser.add_argument(
         "-v",
@@ -277,6 +275,7 @@ def find_tss_peaks_on_reference(
         False: {},
     }
     bed_records = []
+    previous_read = None
 
     for pos, read in fetch_next_read(alignment.fetch(reference_name), use_tes):
         strand = read.is_reverse
@@ -287,7 +286,7 @@ def find_tss_peaks_on_reference(
             if tss_count > threshold:
                 bed_records.append(
                     calculate_tss_region(
-                        reference_name, summit, tss_count, window[strand], strand
+                        reference_name, summit, tss_count, window[strand], strand, previous_read
                     )
                 )
                 window_counts = Counter(sorted(window[strand]))
@@ -297,9 +296,11 @@ def find_tss_peaks_on_reference(
                     ), "We should never see the same base twice {} {} {}".format(reference_name, strand, location)
                     wigs[strand][location] = window_counts[location]
             window[strand] = []
+            previous_read = read
         # extend a region
         else:
             window[strand].append(pos)
+            previous_read = read
 
     # We have to sort at the end because we built the positive and
     # negative strand windows separately so they can be a bit out of
@@ -361,7 +362,7 @@ def find_most_frequent_tss(region: List[int]) -> (int, int):
 
 
 def calculate_tss_region(
-    reference_name: str, summit: int, tss_count: int, region: List[int], is_reverse: bool
+        reference_name: str, summit: int, tss_count: int, region: List[int], is_reverse: bool, read: AlignedRead
 ) -> tss_regions:
     median = numpy.median(region)
     sd = numpy.std(region)
@@ -382,6 +383,7 @@ def calculate_tss_region(
         dense_end,
         summit,
         tss_count,
+        read.query_name,
     )
 
 
