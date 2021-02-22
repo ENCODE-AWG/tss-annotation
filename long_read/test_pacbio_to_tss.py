@@ -79,9 +79,11 @@ class test_pacbio_to_tss(TestCase):
 
     def test_calculate_tss_region_narrow(self):
         window = [100, 101, 101, 105, 106, 106, 106, 108]
+        read = mock_read(True, "r1", 100, 110)
+
         is_reverse = False
 
-        region = calculate_tss_region("chr1", 106, len(window), window, is_reverse)
+        region = calculate_tss_region("chr1", 106, len(window), window, is_reverse, read)
         self.assertEqual(region.reference, "chr1")
         self.assertEqual(region.begin, 100)
         self.assertEqual(region.end, 109)
@@ -90,13 +92,15 @@ class test_pacbio_to_tss(TestCase):
         self.assertEqual(region.dense_end, 109)
         self.assertEqual(region.summit, 106)
         self.assertEqual(region.expression, len(window))
+        self.assertEqual(region.query_name, read.query_name)
 
     def test_calculate_tss_region_wide(self):
         window = [100] * 10 + [140] + [150] * 10
+        read = mock_read(True, "r10", 150, 160)
         is_reverse = False
         summit, tss_count = find_most_frequent_tss(window)
 
-        region = calculate_tss_region("chr1", summit, tss_count, window, is_reverse)
+        region = calculate_tss_region("chr1", summit, tss_count, window, is_reverse, read)
         self.assertEqual(region.reference, "chr1")
         self.assertEqual(region.begin, 100)
         self.assertEqual(region.end, 151)
@@ -105,6 +109,7 @@ class test_pacbio_to_tss(TestCase):
         self.assertEqual(region.dense_end, 151)
         self.assertEqual(region.summit, 150)
         self.assertEqual(region.expression, len(window))
+        self.assertEqual(region.query_name, read.query_name)
 
 if __name__ == "__main__":
     main()
