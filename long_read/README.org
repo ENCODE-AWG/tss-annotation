@@ -64,6 +64,53 @@ an example data from UCI.
 
 [[http://genome.ucsc.edu/cgi-bin/hgTracks?db=mm10&hubUrl=http://woldlab.caltech.edu/~diane/tss-annotation/long_read/C2C12_MB_ENCSR221XGR_hub.txt][C2C12_MB_ENCSR221XGR_hub.txt]]
 
+* tss_reads.py
+
+I was asked to make it easier to extract the pac-bio read names for
+the regions.
+
+The pacbio_to_tss program was getting to have too many options, and I
+thought this might be useful for other data types as well so I
+implemented the functionality in a new program tss_reads.py
+
+The program will write to standard out by default but if you provide
+the -o option you can specify a file name.
+
+The examples above used a zero-based bed file, so this example indicates
+that it should expect a zero based file with -0. If you have a one based bam
+file, leave off the -0.
+
+It also supports --tes if looking for end sites instead of start
+sites. Lastly there is a --dense option that uses the more narrow
+dense region instead of the broader peak.
+
+check --help for all the options.
+
+#+begin_src bash
+  pushd ENCSR221XGR_myoblast
+  python3 tss_reads.py \
+          -0 \
+          -r myoblast2_tss.bed \
+          -i myoblast2.bam \
+          -o myoblast2_read_names.txt
+  popd
+#+end_src
+
+The output file format is close to that of a bed file, though score
+was replaced by the peak name.
+
+#+begin_example
+table read_names
+"TSS read names"
+(
+string  chrom;          "Reference sequence chromosome or scaffold"
+uint    chromStart;     "Start position in chromosome"
+uint    chromEnd;       "End position in chromosome"
+string  name;           "miRBase ID"
+string  peak_name;      "name of source peak"
+char[1] strand;         "+ or - for strand"
+)
+#+end_example
 * .org note
 
   This file is in [[https://orgmode.org/][org-mode]] the format I usually take my notes in
