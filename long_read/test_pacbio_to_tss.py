@@ -111,5 +111,6 @@ class test_pacbio_to_tss(TestCase):
         self.assertEqual(region.expression, len(window))
         self.assertEqual(region.query_name, read.query_name)
 
+
 if __name__ == "__main__":
     main()
